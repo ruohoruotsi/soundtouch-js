@@ -1,0 +1,14 @@
+<script src="http://documentcloud.github.com/underscore/underscore.js"></script>
+<script src="../soundtouch.min.js"></script>
+<script src="example.js"></script>
+<script>
+var count = 0;
+
+function increment() {
+    console.log('increment')
+    if (count++ > 100) {
+        pause();
+        throw Error('whoa');
+    }
+}
+</script>
