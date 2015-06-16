@@ -2,7 +2,7 @@
   "name": "soundtouch-js",
   "version": "1.0.0",
   "description": "Javascript audio time-stretching and pitch-shifting library",
-  "main": "soundtouch.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -20,7 +20,9 @@
 
 function RateTransposer(createBuffers) {
     AbstractFifoSamplePipe.call(this, createBuffers);
-    this._reset();
+    this.slopeCount = 0;
+    this.prevSampleL = 0;
+    this.prevSampleR = 0;
     this.rate = 1;
 }
 

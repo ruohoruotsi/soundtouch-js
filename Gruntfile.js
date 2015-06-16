@@ -9,7 +9,7 @@ module.exports = function(grunt) {
       },
       dist: {
         // the files to concatenate
-        src: ['src/*.js', 'soundtouch.js'],
+        src: ['src/buffer.js','src/core.js','src/filter.js','src/pipe.js','src/rate-transposer.js','src/soundtouch.js','src/stretch.js','src/pitchshifter.js'],
         // the location of the resulting JS file
         dest: 'tmp/soundtouch.concat.js'
       }

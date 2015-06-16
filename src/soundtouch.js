@@ -98,6 +98,7 @@ extend(SoundTouch.prototype, {
     },
 
     _calculateEffectiveRateAndTempo: function () {
+        console.log("calculating");
         var previousTempo = this._tempo;
         var previousRate = this._rate;
 
@@ -142,3 +143,38 @@ extend(SoundTouch.prototype, {
         }
     }
 });
+
+function WebAudioBufferSource(buffer) {
+    this.buffer = buffer;
+}
+WebAudioBufferSource.prototype = {
+    extract: function(target, numFrames, position) {
+        var l = this.buffer.getChannelData(0);
+        var r;
+        if (buffer.numberOfChannels > 1) r = this.buffer.getChannelData(1);
+        for (var i = 0; i < numFrames; i++) {
+            target[i * 2] = l[i + position];
+            if (buffer.numberOfChannels > 1) target[i * 2 + 1] = r[i + position];
+        }
+        return Math.min(numFrames, l.length - position);
+    }
+};
+
+function getWebAudioNode(context, filter, bufSize) {
+    var BUFFER_SIZE = bufSize || 1024;
+    var node = context.createScriptProcessor ? context.createScriptProcessor(BUFFER_SIZE, 2, 2) : context.createJavascriptNode(BUFFER_SIZE, 2, 2),
+        samples = new Float32Array(BUFFER_SIZE * 2);
+    node.onaudioprocess = function(e) {
+        var l = e.outputBuffer.getChannelData(0),
+            r = e.outputBuffer.getChannelData(1);
+        var framesExtracted = filter.extract(samples, BUFFER_SIZE);
+        if (framesExtracted === 0) {
+            node.disconnect(); // Pause.
+        }
+        for (var i = 0; i < framesExtracted; i++) {
+            l[i] = samples[i * 2];
+            r[i] = samples[i * 2 + 1];
+        }
+    };
+    return node;
+}

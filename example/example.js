@@ -1,75 +1,47 @@
-var t = new RateTransposer(true);
-var s = new Stretch(true);
-//s.tempo = .5;
-t.rate = 2;
+//AC polyfill
+window.AudioContext = window.AudioContext ||
+  window.webkitAudioContext ||
+  window.mozAudioContext ||
+  window.oAudioContext ||
+  window.msAudioContext
+
 var context = new webkitAudioContext();
 
-var buffer;
+var pitchshifter, buffer;
 
-loadSample = function(url) {
-    var request = new XMLHttpRequest();
-    request.open('GET', url, true);
-    request.responseType = 'arraybuffer';
+//GET AUDIO FILE
+var request = new XMLHttpRequest();
+request.open('GET', 'sound1.wav', true);
+request.responseType = 'arraybuffer';
 
-    request.onload = function() {
-        console.log('url loaded');
-        createBuffer(request.response);
-    }
-
-    console.log('reading url');
-    request.send();
+request.onload = function() {
+    console.log('url loaded');
+    context.decodeAudioData(request.response, function(buf) {
+        //we now have the audio data
+        buffer = buf;
+        console.log('decoded');
+        pitchshifter = new PitchShifter(context, buffer, 1024);
+        pitchshifter.tempo = 0.75;
+    });
 }
 
-function createBuffer(arrayBuffer) {
-    offset = 0;
-    startTime = 0;
-    var start = new Date();
-    // NOTE the second parameter is required, or a TypeError is thrown
-    buffer = context.createBuffer(arrayBuffer, false);
-    console.log('loaded audio in ' + (new Date() - start));
-}
+console.log('reading url');
+request.send();
 
-//loadSample('badromance.mp3')
-loadSample('track.mp3')
-
-var BUFFER_SIZE = 1024;
-
-var node = context.createScriptProcessor(BUFFER_SIZE, 2, 2);
-
-var samples = new Float32Array(BUFFER_SIZE * 2);
-
-node.onaudioprocess = function (e) {
-    var l = e.outputBuffer.getChannelData(0);
-    var r = e.outputBuffer.getChannelData(1);
-    var framesExtracted = f.extract(samples, BUFFER_SIZE);
-    if (framesExtracted == 0) {
-        pause();
-    }
-    for (var i = 0; i < framesExtracted; i++) {
-        l[i] = samples[i * 2];
-        r[i] = samples[i * 2 + 1];
-    }
-};
-
+//PLAYBACK
 function play() {
-    node.connect(context.destination);
+    pitchshifter.connect(context.destination);
+    console.log("play")
 }
 
 function pause() {
-    node.disconnect();
+    pitchshifter.disconnect();
 }
 
-var source = {
-    extract: function (target, numFrames, position) {
-        var l = buffer.getChannelData(0);
-        var r = buffer.getChannelData(1);
-        for (var i = 0; i < numFrames; i++) {
-            target[i * 2] = l[i + position];
-            target[i * 2 + 1] = r[i + position];
-        }
-        return Math.min(numFrames, l.length - position);
-    }
-};
+document.getElementById('tempoSlider').addEventListener('input', function(){
+    pitchshifter.tempo = this.value;
+});
 
-
-f = new SimpleFilter(source, s);
+document.getElementById('pitchSlider').addEventListener('input', function(){
+    pitchshifter.pitch = this.value;
+});
